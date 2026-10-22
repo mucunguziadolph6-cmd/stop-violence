@@ -4,3 +4,4 @@
 - [ ] Export browser-saved reports as CSV
 - [ ] Voice message on reports (record + transcribe into description)
 - [ ] Delete a saved report (with confirmation)
+- [ ] Let other people see a report (blocked: needs Lovable Cloud; clarify who)
