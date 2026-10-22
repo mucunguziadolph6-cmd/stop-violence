@@ -34,6 +34,7 @@ export const suggestReport = createServerFn({ method: "POST" })
       const result = streamText({
         model: provider.responses("openai/gpt-6-astra"),
         maxRetries: 0,
+        onError: ({ error }) => console.error("AI stream error", error),
         output: Output.object({
           schema: z.object({ category: z.enum(CATEGORIES), summary: z.string() }),
         }),
