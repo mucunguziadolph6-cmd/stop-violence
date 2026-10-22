@@ -38,14 +38,9 @@ export const suggestReport = createServerFn({ method: "POST" })
         output: Output.object({
           schema: z.object({ category: z.enum(CATEGORIES), summary: z.string() }),
         }),
-        messages: [
-          {
-            role: "system",
-            content:
+        instructions:
               "Classify a resident's problem report into one category and write a neutral one-sentence summary (max 25 words). Use the photo if given.",
-          },
-          { role: "user", content },
-        ],
+        messages: [{ role: "user", content }],
         providerOptions: {
           openai: {
             store: false,
