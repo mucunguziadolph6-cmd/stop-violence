@@ -40,9 +40,9 @@ function Index() {
 
   function onFile(f?: File) {
     setErrors((e) => ({ ...e, photo: "" }));
-    if (!f) return setPhoto(undefined);
-    if (!TYPES.includes(f.type)) return setErrors((e) => ({ ...e, photo: "Only JPG, PNG or WEBP images" }));
-    if (f.size > MAX) return setErrors((e) => ({ ...e, photo: "Photo must be under 5 MB" }));
+    if (!f) { setPhoto(undefined); return; }
+    if (!TYPES.includes(f.type)) { setErrors((e) => ({ ...e, photo: "Only JPG, PNG or WEBP images" })); return; }
+    if (f.size > MAX) { setErrors((e) => ({ ...e, photo: "Photo must be under 5 MB" })); return; }
     const r = new FileReader();
     r.onload = () => setPhoto(r.result as string);
     r.readAsDataURL(f);
