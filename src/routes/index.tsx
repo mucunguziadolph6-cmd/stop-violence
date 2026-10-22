@@ -24,14 +24,14 @@ const schema = z.object({
 });
 const MAX = 5 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
-type Report = { id: string; description: string; location: string; photo?: string; createdAt: string };
+type Report = { id: string; description: string; location: string; photo?: string | undefined; createdAt: string };
 const KEY = "pending-reports";
 
 function Index() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [photo, setPhoto] = useState<string>();
-  const [errors, setErrors] = useState<{ description?: string; location?: string; photo?: string }>({});
+  const [errors, setErrors] = useState<{ description?: string | undefined; location?: string | undefined; photo?: string | undefined }>({});
   const [reports, setReports] = useState<Report[]>([]);
 
   useEffect(() => {
@@ -46,6 +46,7 @@ function Index() {
     const r = new FileReader();
     r.onload = () => setPhoto(r.result as string);
     r.readAsDataURL(f);
+    return undefined;
   }
 
   function submit(e: FormEvent) {
