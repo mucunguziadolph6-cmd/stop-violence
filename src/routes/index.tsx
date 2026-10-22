@@ -60,7 +60,8 @@ function Index() {
     try {
       localStorage.setItem(KEY, JSON.stringify(next));
     } catch {
-      return toast.error("Couldn't save — the photo may be too large for this device");
+      toast.error("Couldn't save — the photo may be too large for this device");
+      return;
     }
     setReports(next);
     setDescription(""); setLocation(""); setPhoto(undefined); setErrors({});
