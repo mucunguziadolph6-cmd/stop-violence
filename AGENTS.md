@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- AI calls (category suggestion, voice transcription) run server-side via Lovable AI Gateway; reports live in browser localStorage until Lovable Cloud is enabled — why: Cloud setup is currently failing.

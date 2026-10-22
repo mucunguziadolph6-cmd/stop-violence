@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { recordWav } from "@/lib/record-wav";
+import { transcribeFile } from "@/lib/transcribe-client";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useServerFn } from "@tanstack/react-start";
+import { suggestReport, CATEGORIES } from "@/lib/suggest.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,7 +29,7 @@ const schema = z.object({
 });
 const MAX = 5 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
-type Report = { id: string; description: string; location: string; photo?: string | undefined; createdAt: string };
+type Report = { id: string; description: string; location: string; photo?: string | undefined; category?: string | undefined; summary?: string | undefined; createdAt: string };
 const KEY = "pending-reports";
 
 function Index() {
@@ -33,6 +38,67 @@ function Index() {
   const [photo, setPhoto] = useState<string>();
   const [errors, setErrors] = useState<{ description?: string | undefined; location?: string | undefined; photo?: string | undefined }>({});
   const [reports, setReports] = useState<Report[]>([]);
+  const [category, setCategory] = useState("");
+  const [summary, setSummary] = useState("");
+  const [busy, setBusy] = useState(false);
+  const suggest = useServerFn(suggestReport);
+  const [voice, setVoice] = useState<"idle" | "recording" | "transcribing">("idle");
+  const rec = useRef<{ stop: () => Promise<File> } | null>(null);
+
+  async function toggleVoice() {
+    if (voice === "recording" && rec.current) {
+      setVoice("transcribing");
+      const base = description.trim() ? description.trim() + " " : "";
+      try {
+        const file = await rec.current.stop();
+        await transcribeFile(file, (t) => setDescription(base + t));
+        toast.success("Voice message added to the description");
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Couldn't transcribe");
+      } finally { rec.current = null; setVoice("idle"); }
+      return;
+    }
+    try {
+      rec.current = await recordWav();
+      setVoice("recording");
+    } catch {
+      toast.error("Microphone access was blocked or unavailable.");
+    }
+  }
+
+  function remove(id: string) {
+    const next = reports.filter((r) => r.id !== id);
+    try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* ignore */ }
+    setReports(next);
+    toast.success("Report deleted");
+  }
+
+  async function onSuggest() {
+    if (description.trim().length < 10) {
+      setErrors((e) => ({ ...e, description: "Write at least 10 characters first" }));
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await suggest({ data: { description, ...(photo ? { photo } : {}) } });
+      if ("error" in r) toast.error(r.error);
+      else { setCategory(r.category); setSummary(r.summary); toast.success("Suggestion ready — edit if needed"); }
+    } catch {
+      toast.error("Couldn't reach the AI. Check your connection.");
+    } finally { setBusy(false); }
+  }
+
+  function exportCsv() {
+    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const rows = [["Date", "Category", "Summary", "Description", "Location", "Has photo"],
+      ...reports.map((r) => [r.createdAt, r.category ?? "", r.summary ?? "", r.description, r.location, r.photo ? "yes" : "no"])];
+    const blob = new Blob(["\ufeff" + rows.map((r) => r.map(esc).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `reports-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  }
 
   useEffect(() => {
     try { setReports(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch { /* ignore */ }
@@ -56,7 +122,7 @@ function Index() {
       setErrors(Object.fromEntries(res.error.issues.map((i) => [i.path[0], i.message])) as typeof errors);
       return;
     }
-    const next = [{ id: crypto.randomUUID(), ...res.data, photo, createdAt: new Date().toISOString() }, ...reports];
+    const next = [{ id: crypto.randomUUID(), ...res.data, photo, category: category || undefined, summary: summary.trim() || undefined, createdAt: new Date().toISOString() }, ...reports];
     try {
       localStorage.setItem(KEY, JSON.stringify(next));
     } catch {
@@ -64,7 +130,7 @@ function Index() {
       return;
     }
     setReports(next);
-    setDescription(""); setLocation(""); setPhoto(undefined); setErrors({});
+    setDescription(""); setLocation(""); setPhoto(undefined); setErrors({}); setCategory(""); setSummary("");
     (document.getElementById("photo") as HTMLInputElement).value = "";
     toast.success("Report saved");
   }
@@ -79,6 +145,9 @@ function Index() {
         <div>
           <label htmlFor="desc" className="mb-1 block text-sm font-medium">Description *</label>
           <textarea id="desc" rows={5} className={field} value={description} onChange={(e) => setDescription(e.target.value)} aria-invalid={!!errors.description} />
+          <Button type="button" variant={voice === "recording" ? "destructive" : "outline"} size="sm" className="mt-2" onClick={toggleVoice} disabled={voice === "transcribing"}>
+            {voice === "recording" ? "■ Stop recording" : voice === "transcribing" ? "Transcribing…" : "🎤 Record voice message"}
+          </Button>
           {errors.description && <p className="mt-1 text-sm text-destructive">{errors.description}</p>}
         </div>
         <div>
@@ -92,19 +161,55 @@ function Index() {
           {errors.photo && <p className="mt-1 text-sm text-destructive">{errors.photo}</p>}
           {photo && <img src={photo} alt="Selected" className="mt-3 h-32 rounded-md object-cover" />}
         </div>
+        <div className="space-y-3 rounded-lg bg-secondary p-4">
+          <Button type="button" variant="outline" className="w-full" onClick={onSuggest} disabled={busy}>
+            {busy ? "Thinking…" : "✨ Suggest category & summary"}
+          </Button>
+          <div>
+            <label htmlFor="cat" className="mb-1 block text-sm font-medium">Category</label>
+            <select id="cat" className={field} value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">Not set</option>
+              {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="sum" className="mb-1 block text-sm font-medium">Summary</label>
+            <input id="sum" maxLength={300} className={field} value={summary} onChange={(e) => setSummary(e.target.value)} />
+          </div>
+        </div>
         <Button type="submit" className="w-full">Submit report</Button>
       </form>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">Saved reports ({reports.length})</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold">Saved reports ({reports.length})</h2>
+          <Button variant="outline" size="sm" onClick={exportCsv} disabled={!reports.length}>Export CSV</Button>
+        </div>
         {reports.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">No reports yet.</p>
         ) : (
           <ul className="mt-3 space-y-3">
             {reports.map((r) => (
-              <li key={r.id} className="flex gap-3 rounded-lg border bg-card p-4">
+              <li key={r.id} className="relative flex gap-3 rounded-lg border bg-card p-4 pr-24">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="absolute right-2 top-2 text-destructive">Delete</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this report?</AlertDialogTitle>
+                      <AlertDialogDescription>This can't be undone.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => remove(r.id)}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 {r.photo && <img src={r.photo} alt="" className="h-16 w-16 rounded object-cover" />}
                 <div className="min-w-0">
+                  {r.category && <p className="text-xs font-semibold text-primary">{r.category}</p>}
+                  {r.summary && <p className="text-sm font-medium">{r.summary}</p>}
                   <p className="text-sm break-words">{r.description}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{r.location || "No location"} · {new Date(r.createdAt).toLocaleString()}</p>
                 </div>
