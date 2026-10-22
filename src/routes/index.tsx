@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { recordWav } from "@/lib/record-wav";
+import { transcribeFile } from "@/lib/transcribe-client";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -39,6 +42,36 @@ function Index() {
   const [summary, setSummary] = useState("");
   const [busy, setBusy] = useState(false);
   const suggest = useServerFn(suggestReport);
+  const [voice, setVoice] = useState<"idle" | "recording" | "transcribing">("idle");
+  const rec = useRef<{ stop: () => Promise<File> } | null>(null);
+
+  async function toggleVoice() {
+    if (voice === "recording" && rec.current) {
+      setVoice("transcribing");
+      const base = description.trim() ? description.trim() + " " : "";
+      try {
+        const file = await rec.current.stop();
+        await transcribeFile(file, (t) => setDescription(base + t));
+        toast.success("Voice message added to the description");
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Couldn't transcribe");
+      } finally { rec.current = null; setVoice("idle"); }
+      return;
+    }
+    try {
+      rec.current = await recordWav();
+      setVoice("recording");
+    } catch {
+      toast.error("Microphone access was blocked or unavailable.");
+    }
+  }
+
+  function remove(id: string) {
+    const next = reports.filter((r) => r.id !== id);
+    try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* ignore */ }
+    setReports(next);
+    toast.success("Report deleted");
+  }
 
   async function onSuggest() {
     if (description.trim().length < 10) {
@@ -112,6 +145,9 @@ function Index() {
         <div>
           <label htmlFor="desc" className="mb-1 block text-sm font-medium">Description *</label>
           <textarea id="desc" rows={5} className={field} value={description} onChange={(e) => setDescription(e.target.value)} aria-invalid={!!errors.description} />
+          <Button type="button" variant={voice === "recording" ? "destructive" : "outline"} size="sm" className="mt-2" onClick={toggleVoice} disabled={voice === "transcribing"}>
+            {voice === "recording" ? "■ Stop recording" : voice === "transcribing" ? "Transcribing…" : "🎤 Record voice message"}
+          </Button>
           {errors.description && <p className="mt-1 text-sm text-destructive">{errors.description}</p>}
         </div>
         <div>
@@ -154,7 +190,22 @@ function Index() {
         ) : (
           <ul className="mt-3 space-y-3">
             {reports.map((r) => (
-              <li key={r.id} className="flex gap-3 rounded-lg border bg-card p-4">
+              <li key={r.id} className="relative flex gap-3 rounded-lg border bg-card p-4 pr-24">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="absolute right-2 top-2 text-destructive">Delete</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this report?</AlertDialogTitle>
+                      <AlertDialogDescription>This can't be undone.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => remove(r.id)}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 {r.photo && <img src={r.photo} alt="" className="h-16 w-16 rounded object-cover" />}
                 <div className="min-w-0">
                   {r.category && <p className="text-xs font-semibold text-primary">{r.category}</p>}
