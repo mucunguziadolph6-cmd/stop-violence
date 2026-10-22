@@ -31,7 +31,7 @@ function Index() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [photo, setPhoto] = useState<string>();
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<{ description?: string; location?: string; photo?: string }>({});
   const [reports, setReports] = useState<Report[]>([]);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ function Index() {
     e.preventDefault();
     const res = schema.safeParse({ description, location });
     if (!res.success) {
-      setErrors(Object.fromEntries(res.error.issues.map((i) => [i.path[0], i.message])));
+      setErrors(Object.fromEntries(res.error.issues.map((i) => [i.path[0], i.message])) as typeof errors);
       return;
     }
     const next = [{ id: crypto.randomUUID(), ...res.data, photo, createdAt: new Date().toISOString() }, ...reports];
