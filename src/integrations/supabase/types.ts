@@ -14,13 +14,70 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          display_name: string
+          id: string
+        }
+        Insert: {
+          display_name?: string
+          id: string
+        }
+        Update: {
+          display_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          location: string
+          owner_id: string
+          photo_path: string | null
+          summary: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          location?: string
+          owner_id?: string
+          photo_path?: string | null
+          summary?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          location?: string
+          owner_id?: string
+          photo_path?: string | null
+          summary?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      list_shared_reports: {
+        Args: { page_number?: number }
+        Returns: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          location: string
+          summary: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
