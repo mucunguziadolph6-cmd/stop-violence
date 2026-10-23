@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
 import { suggestReport, CATEGORIES } from "@/lib/suggest.functions";
+import bgAsset from "@/assets/stop-violence-choose-peace.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -137,7 +138,14 @@ function Index() {
 
   const field = "w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
   return (
-    <main className="mx-auto max-w-xl px-4 py-10">
+    <>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-10 bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgAsset.url})` }}
+      />
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-background/85" />
+      <main className="relative mx-auto max-w-xl px-4 py-10">
       <h1 className="text-3xl font-bold tracking-tight text-foreground">Report our problem fast</h1>
       <p className="mt-2 text-sm text-muted-foreground">Reports are saved on this device until secure sign-in is ready.</p>
 
@@ -218,6 +226,7 @@ function Index() {
           </ul>
         )}
       </section>
-    </main>
+      </main>
+    </>
   );
 }

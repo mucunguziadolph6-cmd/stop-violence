@@ -5,3 +5,4 @@
 - [x] Voice message (transcribed into description)
 - [x] Delete report
 - [ ] Let other people see a report (blocked: needs Cloud; clarify who)
+- [x] Set uploaded "Stop Violence" poster as page background
