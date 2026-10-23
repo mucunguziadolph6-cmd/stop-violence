@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
 import { suggestReport, CATEGORIES } from "@/lib/suggest.functions";
+import bgAsset from "@/assets/stop-violence-choose-peace.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
