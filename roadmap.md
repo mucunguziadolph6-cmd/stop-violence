@@ -1,8 +1,11 @@
 # Roadmap
-- [ ] Enable Lovable Cloud (blocked: setup failing on Lovable's side)
+- [x] Enable Lovable Cloud
+- [ ] Add sign-in, signup, private account names, and sign-out
+- [ ] Save reports online and retain browser backups without automatically publishing them
+- [ ] Keep photo attachments private to their authors
 - [x] AI suggestion of category + summary
 - [x] Export CSV
 - [x] Voice message (transcribed into description)
 - [x] Delete report
-- [ ] Let other people see a report (blocked: needs Cloud; clarify who)
+- [ ] Let everyone see reports without exposing account names
 - [x] Set uploaded "Stop Violence" poster as page background
