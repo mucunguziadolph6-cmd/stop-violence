@@ -219,6 +219,7 @@ function Index() {
           </ul>
         )}
       </section>
-    </main>
+      </main>
+    </>
   );
 }
