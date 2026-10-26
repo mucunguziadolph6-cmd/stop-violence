@@ -8,6 +8,13 @@
       "when": 1792733933988,
       "tag": "0000_resident_accounts_and_anonymous_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792999791016,
+      "tag": "0001_report_photos_owner_only",
+      "breakpoints": true
     }
   ]
 }
