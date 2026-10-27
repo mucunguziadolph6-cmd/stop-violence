@@ -92,6 +92,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_reports_since_signup: {
+        Args: { page_number?: number }
+        Returns: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          location: string
+          summary: string
+        }[]
+      }
       list_shared_reports: {
         Args: { page_number?: number }
         Returns: {
