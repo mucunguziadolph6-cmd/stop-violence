@@ -11,6 +11,7 @@ import { suggestReport, CATEGORIES } from "@/lib/suggest.functions";
 import { submitReport, listMyReports, deleteMyReport, type MyReport } from "@/lib/reports.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useResident } from "@/components/resident-session";
+import { CommunityFeed } from "@/components/community-feed";
 import bgAsset from "@/assets/stop-violence-choose-peace.png.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -268,6 +269,8 @@ function Index() {
         </div>
         <Button type="submit" className="w-full" disabled={saving}>{saving ? "Saving…" : "Submit report"}</Button>
       </form>
+
+      {user && <CommunityFeed />}
 
       <section className="mt-10">
         <div className="flex items-center justify-between gap-2">
