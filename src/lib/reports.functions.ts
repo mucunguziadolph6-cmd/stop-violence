@@ -114,3 +114,13 @@ export const deleteMyReport = createServerFn({ method: 'POST' })
     }
     return { ok: true };
   });
+
+// Signed-in feed: only reports made after the viewer created their account.
+export const listFeedReports = createServerFn({ method: 'GET' })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { page: number }) => ({ page: Math.max(0, Math.floor(data.page || 0)) }))
+  .handler(async ({ data, context }) => {
+    const result = await context.supabase.rpc('list_reports_since_signup', { page_number: data.page });
+    if (result.error) throw new Error('Could not load community reports');
+    return (result.data || []).map(sharedReport);
+  });
