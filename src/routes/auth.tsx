@@ -42,7 +42,7 @@ function AuthPage() {
         }
         if (data.user && data.user.identities?.length === 0) { setMode('login'); setMessage('You already have an account — enter your password to continue.'); return; }
         if (data.session) await navigate({ to: '/', replace: true });
-        else setMessage('Check your email to confirm your account, then sign in.');
+        else setMessage('Account created — please sign in.');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) {
