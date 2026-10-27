@@ -36,11 +36,20 @@ function AuthPage() {
         setMessage('If an account exists, check your email for a reset link.');
       } else if (mode === 'signup') {
         const { error, data } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { display_name: name.trim() }, emailRedirectTo: window.location.origin } });
-        if (error) throw error;
-        if (!data.session) setMessage('Check your email to confirm your account before signing in.');
+        if (error) {
+          if (/already|registered|exists/i.test(error.message)) { setMode('login'); setMessage('You already have an account — enter your password to continue.'); return; }
+          throw error;
+        }
+        if (data.user && data.user.identities?.length === 0) { setMode('login'); setMessage('You already have an account — enter your password to continue.'); return; }
+        if (data.session) await navigate({ to: '/', replace: true });
+        else setMessage('Check your email to confirm your account, then sign in.');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-        if (error) throw error;
+        if (error) {
+          if (/not confirmed/i.test(error.message)) throw new Error('Please confirm your email first — check your inbox.');
+          if (/invalid login/i.test(error.message)) throw new Error('Wrong email or password. New here? Create an account.');
+          throw error;
+        }
         await navigate({ to: '/', replace: true });
       }
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Please try again.'); }
