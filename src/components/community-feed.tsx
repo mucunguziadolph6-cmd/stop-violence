@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { listSharedReports } from '@/lib/reports.functions';
+import { listFeedReports } from '@/lib/reports.functions';
 
 // Shows every resident's report to signed-in users, without names.
 export function CommunityFeed() {
-  const fetchShared = useServerFn(listSharedReports);
+  const fetchShared = useServerFn(listFeedReports);
   const { data, isLoading, isError } = useQuery({
     queryKey: ['shared-reports'],
     queryFn: () => fetchShared({ data: { page: 0 } }),
@@ -13,7 +13,7 @@ export function CommunityFeed() {
   return (
     <section className="mt-10">
       <h2 className="text-lg font-semibold">Community reports ({data?.length ?? 0})</h2>
-      <p className="text-xs text-muted-foreground">Everyone with an account can see these. Names are never shown.</p>
+      <p className="text-xs text-muted-foreground">Reports sent since you joined. Names are never shown.</p>
       {isLoading ? <p className="mt-2 text-sm">Loading…</p>
         : isError ? <p className="mt-2 text-sm text-destructive">Could not load community reports.</p>
         : !data?.length ? <p className="mt-2 text-sm text-muted-foreground">No reports yet.</p>

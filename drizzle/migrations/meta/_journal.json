@@ -22,6 +22,13 @@
       "when": 1793025370683,
       "tag": "0002_staff_role_access",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793080600885,
+      "tag": "0003_feed_since_signup",
+      "breakpoints": true
     }
   ]
 }
