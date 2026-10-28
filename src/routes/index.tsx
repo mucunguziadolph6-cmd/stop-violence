@@ -12,6 +12,7 @@ import { submitReport, listMyReports, deleteMyReport, type MyReport } from "@/li
 import { supabase } from "@/integrations/supabase/client";
 import { useResident } from "@/components/resident-session";
 import { CommunityFeed } from "@/components/community-feed";
+import { RibEmergency } from "@/components/rib-emergency";
 import bgAsset from "@/assets/stop-violence-choose-peace.png.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -232,6 +233,7 @@ function Index() {
       </p>
 
       <form onSubmit={submit} noValidate className="mt-6 space-y-5 rounded-xl border bg-card p-6 shadow-sm">
+        <RibEmergency />
         <div>
           <label htmlFor="desc" className="mb-1 block text-sm font-medium">Description *</label>
           <textarea id="desc" rows={5} className={field} value={description} onChange={(e) => setDescription(e.target.value)} aria-invalid={!!errors.description} />

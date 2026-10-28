@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - AI calls (category suggestion, voice transcription) run server-side via Lovable AI Gateway; reports live in browser localStorage until Lovable Cloud is enabled — why: Cloud setup is currently failing.
+- Keep official emergency destinations in a shared client-safe contact module and open them only on explicit user action; never automatically transmit report data — why: emergency access must not imply dispatch or expose private reports.
