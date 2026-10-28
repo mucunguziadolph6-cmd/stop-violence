@@ -29,6 +29,13 @@
       "when": 1793080600885,
       "tag": "0003_feed_since_signup",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793186438165,
+      "tag": "0004_school_memberships_notifications_feedback",
+      "breakpoints": true
     }
   ]
 }
