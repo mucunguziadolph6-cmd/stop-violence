@@ -88,9 +88,10 @@ export function SchoolPanel({ user }: { user: User }) {
 }
 
 function RoleSetup({ user, schools, rejected, onDone }: { user: User; schools: School[]; rejected: boolean; onDone: () => void }) {
-  const meta = user.user_metadata ?? {};
-  const [role, setRole] = useState<'student' | 'staff'>(meta.school_role === 'staff' ? 'staff' : 'student');
-  const [title, setTitle] = useState<string>(STAFF_TITLES.includes(meta.staff_title) ? meta.staff_title : 'DOS');
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const metaTitle = String(meta['staff_title'] ?? '');
+  const [role, setRole] = useState<'student' | 'staff'>(meta['school_role'] === 'staff' ? 'staff' : 'student');
+  const [title, setTitle] = useState<string>((STAFF_TITLES as readonly string[]).includes(metaTitle) ? metaTitle : 'DOS');
   const [school, setSchool] = useState('');
   const [busy, setBusy] = useState(false);
   async function save() {
