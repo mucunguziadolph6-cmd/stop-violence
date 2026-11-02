@@ -241,6 +241,16 @@ export type Database = {
       }
       is_school_staff: { Args: { _school_id: string }; Returns: boolean }
       is_site_owner: { Args: never; Returns: boolean }
+      list_pending_staff: {
+        Args: never
+        Returns: {
+          created_at: string
+          display_name: string
+          school_name: string
+          staff_title: string
+          user_id: string
+        }[]
+      }
       list_reports_since_signup: {
         Args: { page_number?: number }
         Returns: {
