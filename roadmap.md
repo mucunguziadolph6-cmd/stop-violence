@@ -1,6 +1,6 @@
 # Roadmap
-- [ ] Add Student / School Staff selection, school-scoped notifications and private feedback (awaiting school and staff-approval details)
-- [ ] Add RIB emergency call and official website access on the report form
+- [x] Add Student / School Staff selection, school-scoped notifications and private feedback
+- [x] Add RIB emergency call and official website access on the report form
 - [x] Enable Lovable Cloud
 - [x] Add sign-in, signup, private account names, and sign-out
 - [x] Save reports online and retain browser backups without automatically publishing them

@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useResident } from "@/components/resident-session";
 import { CommunityFeed } from "@/components/community-feed";
 import { RibEmergency } from "@/components/rib-emergency";
+import { SchoolPanel } from "@/components/school-panel";
 import bgAsset from "@/assets/stop-violence-choose-peace.png.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -231,6 +232,8 @@ function Index() {
           ? "Signed in — your reports are saved securely to your account. Your name is never shown on shared reports."
           : "Reports are saved on this device. Sign in to save them securely to your account."}
       </p>
+      {user && <div className="mt-6"><SchoolPanel user={user} /></div>}
+
 
       <form onSubmit={submit} noValidate className="mt-6 space-y-5 rounded-xl border bg-card p-6 shadow-sm">
         <RibEmergency />

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import { useResident } from '@/components/resident-session';
+import { STAFF_TITLES, STAFF_TITLE_LABELS } from '@/components/school-panel';
 import bgAsset from '@/assets/stop-violence-choose-peace.png.asset.json';
 import '@lovable.dev/cloud-auth-js/styles.css';
 
@@ -24,6 +25,8 @@ function AuthPage() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [role, setRole] = useState<'student' | 'staff'>('student');
+  const [title, setTitle] = useState<string>('DOS');
   const { user } = useResident();
   const navigate = useNavigate();
   useEffect(() => { if (user) void navigate({ to: '/', replace: true }); }, [user, navigate]);
@@ -35,7 +38,7 @@ function AuthPage() {
         if (error) throw error;
         setMessage('If an account exists, check your email for a reset link.');
       } else if (mode === 'signup') {
-        const { error, data } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { display_name: name.trim() }, emailRedirectTo: window.location.origin } });
+        const { error, data } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { display_name: name.trim(), school_role: role, staff_title: role === 'staff' ? title : '' }, emailRedirectTo: window.location.origin } });
         if (error) {
           if (/already|registered|exists/i.test(error.message)) { setMode('login'); setMessage('You already have an account — enter your password to continue.'); return; }
           throw error;
@@ -71,6 +74,9 @@ function AuthPage() {
       <h1 className="mt-5 text-3xl font-bold">{mode === 'signup' ? 'Create your account' : mode === 'forgot' ? 'Reset your password' : 'Resident sign-in'}</h1>
       <form className="mt-6 space-y-4 rounded-lg border bg-card p-6 shadow-sm" onSubmit={submit}>
         {mode === 'signup' && <div><label htmlFor="resident-name" className="mb-1 block text-sm font-medium">Your name</label><input id="resident-name" autoComplete="name" required maxLength={100} className={field} value={name} onChange={e => setName(e.target.value)} /></div>}
+        {mode === 'signup' && <div><p className="mb-1 text-sm font-medium">I am a…</p><div className="flex gap-2"><Button type="button" variant={role === 'student' ? 'default' : 'outline'} onClick={() => setRole('student')}>Student</Button><Button type="button" variant={role === 'staff' ? 'default' : 'outline'} onClick={() => setRole('staff')}>School Staff Member</Button></div>
+          {role === 'staff' && <select aria-label="Staff position" className={`${field} mt-2`} value={title} onChange={e => setTitle(e.target.value)}>{STAFF_TITLES.map(t => <option key={t} value={t}>{STAFF_TITLE_LABELS[t]}</option>)}</select>}
+          <p className="mt-1 text-xs text-muted-foreground">You'll choose your school after signing in. Staff need approval first.</p></div>}
         <div><label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label><input id="email" type="email" required autoComplete="email" className={field} value={email} onChange={e => setEmail(e.target.value)} /></div>
         {mode !== 'forgot' && <div><label htmlFor="password" className="mb-1 block text-sm font-medium">Password</label><input id="password" type="password" required minLength={8} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} className={field} value={password} onChange={e => setPassword(e.target.value)} /></div>}
         {message && <p role="status" className="break-words text-sm">{message}</p>}
