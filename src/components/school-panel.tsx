@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,19 +34,48 @@ export function SchoolPanel({ user }: { user: User }) {
 
   useEffect(() => { void load(); }, [load]);
 
+  const [notifPerm, setNotifPerm] = useState<string>('default');
+  useEffect(() => { if (typeof Notification !== 'undefined') setNotifPerm(Notification.permission); }, []);
+  async function enableNotifications() {
+    if (typeof Notification === 'undefined') { toast.error('This browser does not support notifications'); return; }
+    setNotifPerm(await Notification.requestPermission());
+  }
+
+  const announce = useCallback(async (alert: Alert) => {
+    const { data: r } = await supabase.from('reports').select('summary,description,location,created_at').eq('id', alert.report_id).maybeSingle();
+    const title = alert.kind === 'student_report' ? 'New student report submitted' : 'You received feedback from your school';
+    const when = new Date(r?.created_at ?? alert.created_at).toLocaleString();
+    const detail = r ? `${(r.summary || r.description).slice(0, 140)}${r.location ? ` · ${r.location}` : ''}` : '';
+    const body = `${detail}\n${when}`.trim();
+    toast(title, { description: body, duration: 15000, action: { label: 'Open', onClick: () => setOpenReport(alert.report_id) } });
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      const n = new Notification(title, { body, tag: alert.id });
+      n.onclick = () => { window.focus(); setOpenReport(alert.report_id); n.close(); };
+    }
+  }, []);
+
+  // On open: immediately announce unread alerts received while away.
+  const announced = useRef(false);
+  useEffect(() => {
+    if (announced.current || !alerts.length) return;
+    announced.current = true;
+    const unreadList = alerts.filter((a) => !a.read_at); const first = unreadList[0]; if (!first) return;
+    if (unreadList.length === 1) void announce(first);
+    else if (unreadList.length > 1) toast(`${unreadList.length} new reports/replies waiting`, { duration: 15000, action: { label: 'Open latest', onClick: () => setOpenReport(first.report_id) } });
+  }, [alerts, announce]);
+
   useEffect(() => {
     const channel = supabase.channel(`alerts-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'school_notifications', filter: `recipient_id=eq.${user.id}` }, (payload) => {
         const alert = payload.new as Alert;
+        announced.current = true;
         setAlerts((list) => [alert, ...list.filter((x) => x.id !== alert.id)]);
-        toast(alert.kind === 'student_report' ? 'A student has reported an issue' : 'You received feedback from your school', {
-          action: { label: 'View', onClick: () => setOpenReport(alert.report_id) },
-        });
+        void announce(alert);
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'school_memberships', filter: `user_id=eq.${user.id}` }, () => void load())
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
-  }, [user.id, load]);
+  }, [user.id, load, announce]);
 
   async function openAlert(a: Alert) {
     setOpenReport(a.report_id);
@@ -75,6 +104,10 @@ export function SchoolPanel({ user }: { user: User }) {
       {(isStaff || membership?.member_role === 'student') && (
         <div className="rounded-lg border bg-card p-4">
           <h2 className="font-semibold">{isStaff ? 'Student reports' : 'Replies from school'} {unread > 0 && <span className="ml-1 rounded-full bg-destructive px-2 py-0.5 text-xs text-destructive-foreground">{unread} new</span>}</h2>
+          {notifPerm !== 'granted' && <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <span>{notifPerm === 'denied' ? 'Notifications are blocked in your browser settings.' : 'Get alerts on your device even when this tab is in the background.'}</span>
+            {notifPerm !== 'denied' && <Button size="sm" variant="outline" onClick={enableNotifications}>Enable notifications</Button>}
+          </div>}
           {!alerts.length ? <p className="mt-2 text-sm text-muted-foreground">No notifications yet.</p>
             : <ul className="mt-2 divide-y">{alerts.map((a) => (
               <li key={a.id}><button type="button" onClick={() => openAlert(a)} className={`w-full py-2 text-left text-sm hover:underline ${a.read_at ? 'text-muted-foreground' : 'font-semibold'}`}>
@@ -107,7 +140,7 @@ function RoleSetup({ user, schools, rejected, onDone }: { user: User; schools: S
       {rejected && <p className="text-sm text-destructive">Your staff request was not approved. You can choose again.</p>}
       <div className="flex gap-2">
         <Button type="button" variant={role === 'student' ? 'default' : 'outline'} onClick={() => setRole('student')}>Student</Button>
-        <Button type="button" variant={role === 'staff' ? 'default' : 'outline'} onClick={() => setRole('staff')}>School Staff Member</Button>
+        <Button type="button" variant={role === 'staff' ? 'default' : 'outline'} onClick={() => setRole('staff')}>School Administrator</Button>
       </div>
       {role === 'staff' && <select aria-label="Staff position" className={field} value={title} onChange={(e) => setTitle(e.target.value)}>
         {STAFF_TITLES.map((t) => <option key={t} value={t}>{STAFF_TITLE_LABELS[t]}</option>)}
