@@ -81,18 +81,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       
-      { name: "author", content: "Lovable" },
+      { title: "Stop Violence — Choose Peace" },
+      { name: "description", content: "Report a problem with a description, location and photo — privately and securely." },
+      { name: "author", content: "Stop Violence — Choose Peace" },
       
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png" },
+      { rel: "shortcut icon", type: "image/x-icon", href: "/favicon.ico" },
+      { rel: "apple-touch-icon", type: "image/png", sizes: "180x180", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
