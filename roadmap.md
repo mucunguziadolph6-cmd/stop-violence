@@ -10,7 +10,7 @@
 - [x] Export CSV
 - [x] Voice message (transcribed into description)
 - [x] Delete report
-- [ ] Let everyone see reports without exposing account names
+- [x] Let everyone see reports without exposing account names
 - [x] Set uploaded "Stop Violence" poster as page background
 - [x] "Stop Violence" header on the page
 - [x] End-to-end check: sign up, submit report with photo, sign in again, confirm it saved online
