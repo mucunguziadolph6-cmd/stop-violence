@@ -59,9 +59,9 @@ export function SchoolPanel({ user }: { user: User }) {
   useEffect(() => {
     if (announced.current || !alerts.length) return;
     announced.current = true;
-    const unreadList = alerts.filter((a) => !a.read_at);
-    if (unreadList.length === 1) void announce(unreadList[0]);
-    else if (unreadList.length > 1) toast(`${unreadList.length} new reports/replies waiting`, { duration: 15000, action: { label: 'Open latest', onClick: () => setOpenReport(unreadList[0].report_id) } });
+    const unreadList = alerts.filter((a) => !a.read_at); const first = unreadList[0]; if (!first) return;
+    if (unreadList.length === 1) void announce(first);
+    else if (unreadList.length > 1) toast(`${unreadList.length} new reports/replies waiting`, { duration: 15000, action: { label: 'Open latest', onClick: () => setOpenReport(first.report_id) } });
   }, [alerts, announce]);
 
   useEffect(() => {
