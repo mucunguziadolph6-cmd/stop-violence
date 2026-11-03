@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Replace browser tab icon and page metadata branding with the site's own artwork
 - [x] Add Student / School Staff selection, school-scoped notifications and private feedback
 - [x] Add RIB emergency call and official website access on the report form
 - [x] Enable Lovable Cloud
