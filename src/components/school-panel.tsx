@@ -107,7 +107,7 @@ function RoleSetup({ user, schools, rejected, onDone }: { user: User; schools: S
       {rejected && <p className="text-sm text-destructive">Your staff request was not approved. You can choose again.</p>}
       <div className="flex gap-2">
         <Button type="button" variant={role === 'student' ? 'default' : 'outline'} onClick={() => setRole('student')}>Student</Button>
-        <Button type="button" variant={role === 'staff' ? 'default' : 'outline'} onClick={() => setRole('staff')}>School Staff Member</Button>
+        <Button type="button" variant={role === 'staff' ? 'default' : 'outline'} onClick={() => setRole('staff')}>School Administrator</Button>
       </div>
       {role === 'staff' && <select aria-label="Staff position" className={field} value={title} onChange={(e) => setTitle(e.target.value)}>
         {STAFF_TITLES.map((t) => <option key={t} value={t}>{STAFF_TITLE_LABELS[t]}</option>)}
