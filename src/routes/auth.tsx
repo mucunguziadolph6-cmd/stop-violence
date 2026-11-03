@@ -6,7 +6,6 @@ import { lovable } from '@/integrations/lovable/index';
 import { useResident } from '@/components/resident-session';
 import { STAFF_TITLES, STAFF_TITLE_LABELS } from '@/components/school-panel';
 import bgAsset from '@/assets/stop-violence-choose-peace.png.asset.json';
-import '@lovable.dev/cloud-auth-js/styles.css';
 
 export const Route = createFileRoute('/auth')({
   head: () => ({ meta: [
@@ -58,7 +57,7 @@ function AuthPage() {
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Please try again.'); }
     finally { setBusy(false); }
   }
-  async function social(provider: 'google' | 'lovable') {
+  async function social(provider: 'google') {
     setMessage('');
     try {
       const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
@@ -81,7 +80,7 @@ function AuthPage() {
         {mode !== 'forgot' && <div><label htmlFor="password" className="mb-1 block text-sm font-medium">Password</label><input id="password" type="password" required minLength={8} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} className={field} value={password} onChange={e => setPassword(e.target.value)} /></div>}
         {message && <p role="status" className="break-words text-sm">{message}</p>}
         <Button className="w-full" disabled={busy}>{busy ? 'Please wait…' : mode === 'signup' ? 'Create account' : mode === 'forgot' ? 'Send reset link' : 'Sign in'}</Button>
-        {mode !== 'forgot' && <><Button type="button" variant="outline" className="w-full" onClick={() => social('google')}>Continue with Google</Button><Button type="button" className="lovable-auth-button w-full" onClick={() => social('lovable')}>Continue with Lovable</Button></>}
+        {mode !== 'forgot' && <Button type="button" variant="outline" className="w-full" onClick={() => social('google')}>Continue with Google</Button>}
         <div className="flex flex-wrap gap-2"><Button type="button" variant="link" onClick={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setMessage(''); }}>{mode === 'signup' ? 'Already have an account?' : 'Create an account'}</Button><Button type="button" variant="link" onClick={() => { setMode(mode === 'forgot' ? 'login' : 'forgot'); setMessage(''); }}>{mode === 'forgot' ? 'Back to sign in' : 'Forgot password?'}</Button></div>
       </form>
     </div>
