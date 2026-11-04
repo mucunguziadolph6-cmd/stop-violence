@@ -25,7 +25,8 @@ export function SchoolPanel({ user }: { user: User }) {
   const load = useCallback(async () => {
     const [m, s, o, a] = await Promise.all([
       supabase.from('school_memberships').select('school_id,member_role,staff_title,status').eq('user_id', user.id).maybeSingle(),
-      supabase.from('schools').select('id,name').order('name'),
+      Promise.all([0, 1, 2].map((p) => supabase.from('schools').select('id,name').order('name').range(p * 1000, p * 1000 + 999)))
+        .then((rs) => ({ data: rs.flatMap((r) => r.data ?? []) })),
       supabase.rpc('is_site_owner'),
       supabase.from('school_notifications').select('id,report_id,kind,created_at,read_at').eq('recipient_id', user.id).order('created_at', { ascending: false }).limit(30),
     ]);
@@ -126,6 +127,9 @@ function RoleSetup({ user, schools, rejected, onDone }: { user: User; schools: S
   const [role, setRole] = useState<'student' | 'staff'>(meta['school_role'] === 'staff' ? 'staff' : 'student');
   const [title, setTitle] = useState<string>((STAFF_TITLES as readonly string[]).includes(metaTitle) ? metaTitle : 'DOS');
   const [school, setSchool] = useState('');
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
+  const matches = q ? schools.filter((s) => s.name.toLowerCase().includes(q) || s.id === school) : schools;
   const [busy, setBusy] = useState(false);
   async function save() {
     if (!school) { toast.error('Choose your school'); return; }
@@ -145,9 +149,10 @@ function RoleSetup({ user, schools, rejected, onDone }: { user: User; schools: S
       {role === 'staff' && <select aria-label="Staff position" className={field} value={title} onChange={(e) => setTitle(e.target.value)}>
         {STAFF_TITLES.map((t) => <option key={t} value={t}>{STAFF_TITLE_LABELS[t]}</option>)}
       </select>}
+      <input aria-label="Search school" className={field} placeholder="Type your school or district…" value={query} onChange={(e) => setQuery(e.target.value)} />
       <select aria-label="School" className={field} value={school} onChange={(e) => setSchool(e.target.value)}>
-        <option value="">Choose your school…</option>
-        {schools.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+        <option value="">{matches.length ? `Choose your school (${matches.length} found)…` : 'No school matches'}</option>
+        {matches.slice(0, 300).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
       </select>
       {!schools.length && <p className="text-xs text-muted-foreground">No schools have been added yet.</p>}
       <Button type="button" onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Continue'}</Button>
