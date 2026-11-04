@@ -14,3 +14,5 @@
 - [x] Set uploaded "Stop Violence" poster as page background
 - [x] "Stop Violence" header on the page
 - [x] End-to-end check: sign up, submit report with photo, sign in again, confirm it saved online
+- [ ] Add Rwanda secondary schools + school search
+- [ ] Make app installable on desktop with app logo
