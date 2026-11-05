@@ -17,6 +17,7 @@ import { SchoolPanel } from "@/components/school-panel";
 import bgAsset from "@/assets/stop-violence-choose-peace.png.asset.json";
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Stop Violence — Report our problem fast" },
@@ -345,6 +346,15 @@ function Index() {
         )}
       </section>
       </main>
+      <footer className="relative mx-auto max-w-xl px-4 pb-10 text-center text-sm text-muted-foreground">
+        <Link to="/about" className="underline">
+          About
+        </Link>
+        {" · "}
+        <Link to="/contact" className="underline">
+          Contact
+        </Link>
+      </footer>
     </>
   );
 }
