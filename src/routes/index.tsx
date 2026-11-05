@@ -346,14 +346,16 @@ function Index() {
         )}
       </section>
       </main>
-      <footer className="relative mx-auto max-w-xl px-4 pb-10 text-center text-sm text-muted-foreground">
-        <Link to="/about" className="underline">
-          About
-        </Link>
-        {" · "}
-        <Link to="/contact" className="underline">
-          Contact
-        </Link>
+      <footer className="relative mx-auto max-w-xl px-4 pb-10 text-center">
+        <span className="inline-block rounded-lg bg-card/90 px-3 py-2 text-sm text-muted-foreground">
+          <Link to="/about" className="underline">
+            About
+          </Link>
+          {" · "}
+          <Link to="/contact" className="underline">
+            Contact
+          </Link>
+        </span>
       </footer>
     </>
   );

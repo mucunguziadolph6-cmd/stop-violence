@@ -39,51 +39,54 @@ function About() {
           <p className="text-3xl font-black uppercase tracking-tight text-destructive sm:text-4xl">Stop Violence</p>
           <p className="mt-1 text-sm font-bold uppercase tracking-widest text-foreground">Choose Peace</p>
         </header>
-        <h1 className="mt-6 text-2xl font-bold tracking-tight">About this site</h1>
-        <p className="mt-3 text-sm leading-relaxed">
-          Stop Violence gives students, staff and residents one simple way to report a problem: write what happened,
-          add where it happened, and attach a photo if you have one. You can speak your report instead of typing it,
-          and the site can suggest a category and a short summary for you to check before sending.
-        </p>
-        <h2 className="mt-6 text-lg font-semibold">Your privacy comes first</h2>
-        <ul className="mt-2 list-disc space-y-2 pl-5 text-sm">
-          <li>Your name is kept on your own account. It is never shown on a report other people can read.</li>
-          <li>Photos you attach stay private to you — they are not published with the report.</li>
-          <li>Reports you send while signed out are saved only on the device you are using.</li>
-        </ul>
-        <h2 className="mt-6 text-lg font-semibold">Who can help</h2>
-        <p className="mt-2 text-sm leading-relaxed">
-          When you create an account you say whether you are a Student or a School Administrator (Director of Studies,
-          Head Teacher or Discipline Master), then choose your school. Administrators are approved before they can see
-          anything. When a student reports a problem, the approved administrators at that school are alerted straight
-          away and can write advice back — only that student sees the reply.
-        </p>
-        <h2 className="mt-6 text-lg font-semibold">In an emergency</h2>
-        <p className="mt-2 text-sm leading-relaxed">
-          Do not wait for a reply here. Call the Rwanda Investigation Bureau on <strong>166</strong> or visit
-          {" "}
-          <a className="underline" href="https://www.rib.gov.rw/" target="_blank" rel="noreferrer">
-            rib.gov.rw
-          </a>
-          .
-        </p>
-        <div className="mt-8 flex flex-wrap gap-2">
-          <Button asChild>
-            <Link to="/">Report a problem</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/contact">Contact</Link>
-          </Button>
+        <div className="mt-6 rounded-xl border bg-card p-6 shadow-sm">
+          <h1 className="text-2xl font-bold tracking-tight">About this site</h1>
+          <p className="mt-3 text-sm leading-relaxed">
+            Stop Violence gives students, staff and residents one simple way to report a problem: write what happened,
+            add where it happened, and attach a photo if you have one. You can speak your report instead of typing it,
+            and the site can suggest a category and a short summary for you to check before sending.
+          </p>
+          <h2 className="mt-6 text-lg font-semibold">Your privacy comes first</h2>
+          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm">
+            <li>Your name is kept on your own account. It is never shown on a report other people can read.</li>
+            <li>Photos you attach stay private to you — they are not published with the report.</li>
+            <li>Reports you send while signed out are saved only on the device you are using.</li>
+          </ul>
+          <h2 className="mt-6 text-lg font-semibold">Who can help</h2>
+          <p className="mt-2 text-sm leading-relaxed">
+            When you create an account you say whether you are a Student or a School Administrator (Director of
+            Studies, Head Teacher or Discipline Master), then choose your school. Administrators are approved before
+            they can see anything. When a student reports a problem, the approved administrators at that school are
+            alerted straight away and can write advice back — only that student sees the reply.
+          </p>
+          <h2 className="mt-6 text-lg font-semibold">In an emergency</h2>
+          <p className="mt-2 text-sm leading-relaxed">
+            Do not wait for a reply here. Call the Rwanda Investigation Bureau on <strong>166</strong> or visit{" "}
+            <a className="underline" href="https://www.rib.gov.rw/" target="_blank" rel="noreferrer">
+              rib.gov.rw
+            </a>
+            .
+          </p>
+          <div className="mt-8 flex flex-wrap gap-2">
+            <Button asChild>
+              <Link to="/">Report a problem</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/contact">Contact</Link>
+            </Button>
+          </div>
         </div>
       </main>
-      <footer className="relative mx-auto max-w-xl px-4 pb-10 text-center text-sm text-muted-foreground">
-        <Link to="/" className="underline">
-          Home
-        </Link>
-        {" · "}
-        <Link to="/contact" className="underline">
-          Contact
-        </Link>
+      <footer className="relative mx-auto max-w-xl px-4 pb-10 text-center">
+        <span className="inline-block rounded-lg bg-card/90 px-3 py-2 text-sm text-muted-foreground">
+          <Link to="/" className="underline">
+            Home
+          </Link>
+          {" · "}
+          <Link to="/contact" className="underline">
+            Contact
+          </Link>
+        </span>
       </footer>
     </>
   );
