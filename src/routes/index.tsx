@@ -20,10 +20,10 @@ export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "Stop Violence — Report our problem fast" },
-      { name: "description", content: "Quickly report a problem with a description, location and photo." },
-      { property: "og:title", content: "Stop Violence — Report our problem fast" },
-      { property: "og:description", content: "Quickly report a problem with a description, location and photo." },
+      { title: "Stop Violence | Support and Resources" },
+      { name: "description", content: "Report a problem with a description, location and photo — privately and securely." },
+      { property: "og:title", content: "Stop Violence | Support and Resources" },
+      { property: "og:description", content: "Report a problem with a description, location and photo — privately and securely." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
