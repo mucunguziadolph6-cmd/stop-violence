@@ -82,22 +82,36 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       
-      { title: "Stop Violence — Choose Peace" },
+      { title: "Stop Violence | Support and Resources" },
       { name: "description", content: "Report a problem with a description, location and photo — privately and securely." },
-      { name: "author", content: "Stop Violence — Choose Peace" },
+      { name: "author", content: "Stop Violence" },
       
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://stopviolence.lovable.app/favicon.png" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://stopviolence.lovable.app/favicon.png" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", type: "image/png", sizes: "256x256", href: "/favicon.png" },
-      { rel: "shortcut icon", type: "image/x-icon", href: "/favicon.ico" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/favicon.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/favicon-192.png" },
       { rel: "apple-touch-icon", type: "image/png", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Stop Violence",
+          url: "https://stopviolence.lovable.app/",
+          image: "https://stopviolence.lovable.app/favicon.png",
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
