@@ -8,9 +8,11 @@ import { STAFF_TITLES, STAFF_TITLE_LABELS } from '@/components/school-panel';
 import bgAsset from '@/assets/stop-violence-choose-peace.png.asset.json';
 
 export const Route = createFileRoute('/auth')({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: 'Sign in | Report our problem fast' },
     { name: 'description', content: 'Create a resident account or sign in to submit a community report.' },
+    { name: 'robots', content: 'noindex' },
     { property: 'og:title', content: 'Resident sign-in | Report our problem fast' },
     { property: 'og:description', content: 'Sign in securely. Your account name stays private.' },
     { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' },

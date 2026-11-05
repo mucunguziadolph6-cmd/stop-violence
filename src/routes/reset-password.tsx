@@ -3,7 +3,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 export const Route = createFileRoute('/reset-password')({
-  head: () => ({ meta: [{ title: 'Reset password | Report our problem fast' }, { name: 'description', content: 'Set a new password for your resident account.' }, { property: 'og:title', content: 'Reset your resident password' }, { property: 'og:description', content: 'Secure account recovery for Report our problem fast.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
+  staticData: { sitemap: false },
+  head: () => ({ meta: [{ title: 'Reset password | Report our problem fast' }, { name: 'description', content: 'Set a new password for your resident account.' }, { name: 'robots', content: 'noindex' }, { property: 'og:title', content: 'Reset your resident password' }, { property: 'og:description', content: 'Secure account recovery for Report our problem fast.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: ResetPassword,
 });
 function ResetPassword() {

@@ -16,3 +16,4 @@
 - [x] End-to-end check: sign up, submit report with photo, sign in again, confirm it saved online
 - [x] Add Rwanda secondary schools + school search
 - [x] Make app installable on desktop with app logo
+- [x] Add sitemap.xml (/, /about, /contact) + Sitemap line in robots.txt
