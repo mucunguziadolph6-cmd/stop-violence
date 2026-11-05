@@ -17,3 +17,4 @@
 - [x] Add Rwanda secondary schools + school search
 - [x] Make app installable on desktop with app logo
 - [x] Add sitemap.xml (/, /about, /contact) + Sitemap line in robots.txt
+- [x] Add About us contact details (email + two phones) on About and Contact pages
