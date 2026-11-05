@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { RIB_CONTACT } from "@/lib/emergency-contacts";
+import { SITE_CONTACT } from "@/lib/site-contact";
 import bgAsset from "@/assets/stop-violence-choose-peace.png.asset.json";
 
 export const Route = createFileRoute("/contact")({
@@ -56,6 +57,28 @@ function Contact() {
                 </a>
               </Button>
             </div>
+          </section>
+          <section className="mt-6">
+            <h2 className="text-lg font-semibold">Email and phone</h2>
+            <p className="mt-2 text-sm leading-relaxed">
+              For questions about the site, help with a report, or to work with us:
+            </p>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li>
+                <span className="text-muted-foreground">Email: </span>
+                <a className="font-medium underline" href={`mailto:${SITE_CONTACT.email}`}>
+                  {SITE_CONTACT.email}
+                </a>
+              </li>
+              {SITE_CONTACT.phones.map((phone) => (
+                <li key={phone.tel}>
+                  <span className="text-muted-foreground">Phone: </span>
+                  <a className="font-medium underline" href={phone.tel}>
+                    {phone.display}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </section>
           <section className="mt-6">
             <h2 className="text-lg font-semibold">Report a problem</h2>
