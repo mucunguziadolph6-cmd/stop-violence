@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { RIB_CONTACT } from "@/lib/emergency-contacts";
+import { SITE_CONTACT } from "@/lib/site-contact";
 import bgAsset from "@/assets/stop-violence-choose-peace.png.asset.json";
 
 export const Route = createFileRoute("/contact")({
