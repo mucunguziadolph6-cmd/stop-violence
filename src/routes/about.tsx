@@ -68,6 +68,27 @@ function About() {
             </a>
             .
           </p>
+          <h2 className="mt-6 text-lg font-semibold">About us</h2>
+          <p className="mt-2 text-sm leading-relaxed">
+            Stop Violence is run by the site owner, who reads every message that comes in. For questions, help with a
+            report, or to work with us, reach us directly:
+          </p>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li>
+              <span className="text-muted-foreground">Email: </span>
+              <a className="font-medium underline" href={`mailto:${SITE_CONTACT.email}`}>
+                {SITE_CONTACT.email}
+              </a>
+            </li>
+            {SITE_CONTACT.phones.map((phone) => (
+              <li key={phone.tel}>
+                <span className="text-muted-foreground">Phone: </span>
+                <a className="font-medium underline" href={phone.tel}>
+                  {phone.display}
+                </a>
+              </li>
+            ))}
+          </ul>
           <div className="mt-8 flex flex-wrap gap-2">
             <Button asChild>
               <Link to="/">Report a problem</Link>

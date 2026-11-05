@@ -59,6 +59,28 @@ function Contact() {
             </div>
           </section>
           <section className="mt-6">
+            <h2 className="text-lg font-semibold">Email and phone</h2>
+            <p className="mt-2 text-sm leading-relaxed">
+              For questions about the site, help with a report, or to work with us:
+            </p>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li>
+                <span className="text-muted-foreground">Email: </span>
+                <a className="font-medium underline" href={`mailto:${SITE_CONTACT.email}`}>
+                  {SITE_CONTACT.email}
+                </a>
+              </li>
+              {SITE_CONTACT.phones.map((phone) => (
+                <li key={phone.tel}>
+                  <span className="text-muted-foreground">Phone: </span>
+                  <a className="font-medium underline" href={phone.tel}>
+                    {phone.display}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="mt-6">
             <h2 className="text-lg font-semibold">Report a problem</h2>
             <p className="mt-2 text-sm leading-relaxed">
               Use the report form on the home page: describe what happened, add the location, and attach a photo if you
