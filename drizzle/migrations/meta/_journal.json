@@ -43,6 +43,13 @@
       "when": 1793605353760,
       "tag": "0005_owner_pending_staff_list",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793952759435,
+      "tag": "0006_student_verification_locations",
+      "breakpoints": true
     }
   ]
 }
