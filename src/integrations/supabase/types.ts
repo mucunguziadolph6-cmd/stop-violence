@@ -14,6 +14,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      districts: {
+        Row: {
+          id: string
+          name: string
+          province_id: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          province_id: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          province_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "districts_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           display_name: string
@@ -26,6 +52,21 @@ export type Database = {
         Update: {
           display_name?: string
           id?: string
+        }
+        Relationships: []
+      }
+      provinces: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -180,21 +221,61 @@ export type Database = {
       }
       schools: {
         Row: {
+          active: boolean
           created_at: string
+          id: string
+          name: string
+          sector_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          sector_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          sector_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schools_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sectors: {
+        Row: {
+          district_id: string
           id: string
           name: string
         }
         Insert: {
-          created_at?: string
+          district_id: string
           id?: string
           name: string
         }
         Update: {
-          created_at?: string
+          district_id?: string
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sectors_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_owners: {
         Row: {
@@ -207,6 +288,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      student_codes: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          school_id: string
+          student_code: string
+          used: boolean
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          school_id: string
+          student_code: string
+          used?: boolean
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          school_id?: string
+          student_code?: string
+          used?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_codes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
