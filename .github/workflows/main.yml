@@ -1,0 +1,37 @@
+Add a simple student verification to my sign-up, with location-based school selection.
+
+SIGN-UP FORM (Student option)
+Add these required fields, in this order:
+1. Province (dropdown)
+2. District (dropdown, shows only districts of the selected province)
+3. Sector (dropdown, shows only sectors of the selected district)
+4. School (dropdown, automatically lists ALL schools in the selected sector; empty until a sector is chosen; if none, show "No school found in this sector. Contact your administrator.")
+5. Full Name
+6. Student Code (example: 200285)
+
+Each dropdown resets the ones below it when changed. Keep the form simple and mobile-friendly.
+
+DATABASE
+- `provinces` (id, name), `districts` (id, name, province_id), `sectors` (id, name, district_id), all for Rwanda. Public read-only.
+- `schools` (id, name, sector_id, active boolean default true). Public read-only (only id, name, sector_id).
+- `student_codes` with: id, student_code (text), full_name (text), school_id (references schools), used (boolean, default false). The pair (school_id, student_code) must be UNIQUE, because different schools may have the same code. Only admins can read this table.
+- Enable Row Level Security on all tables.
+
+SERVER-SIDE VERIFICATION (not only in the frontend)
+When a student submits the form, check that:
+a) the selected school belongs to the selected sector (district and province)
+b) a record exists in `student_codes` for that school_id + student_code
+c) the full name matches (ignore uppercase/lowercase and extra spaces)
+d) the code is not already used
+- If everything matches: create the account, mark the code as used, and automatically create the student's school membership for that school.
+- If anything does not match: do not create the account and show: "We couldn't verify your student details. Please check them or contact your school." (Do not reveal which part was wrong.)
+
+ADMIN PAGE (admins only)
+- Manage schools: add a school by choosing Province > District > Sector and typing the school name. Also allow CSV import of schools (columns: school_name, province, district, sector).
+- Manage students: add students one by one (choose school + code + full name) or upload a CSV (columns: school_name, student_code, full_name). Show a preview and report duplicates or errors before importing.
+- Show each student code with status (used / unused).
+
+LOCATION DATA
+- Pre-fill provinces, districts and sectors of Rwanda using the official administrative list. Provide an admin CSV import for locations too, so I can correct or complete it.
+
+Keep my existing design and pages unchanged.
