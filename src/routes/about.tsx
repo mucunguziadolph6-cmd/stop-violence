@@ -7,7 +7,7 @@ export const Route = createFileRoute("/about")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "About — STOP VIOLENCE IN SCHOOLS, Choose Peace" },
+      { title: "About — stop violence in schools, Choose Peace" },
       {
         name: "description",
         content:
