@@ -40,7 +40,7 @@ export function rowsFromCsv(
 ): { rows: Record<string, string>[]; error: string | null } {
   const table = parseCsv(text);
   if (!table.length) return { rows: [], error: 'The file is empty.' };
-  const header = table[0].map((h) => h.trim().toLowerCase().replace(/^﻿/, ''));
+  const header = (table[0] ?? []).map((h) => h.trim().toLowerCase().replace(/^﻿/, ''));
   for (const col of columns) {
     if (!header.includes(col)) return { rows: [], error: `Missing column "${col}". Expected: ${columns.join(', ')}.` };
   }
