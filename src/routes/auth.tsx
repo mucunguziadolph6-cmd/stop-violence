@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState, type FormEvent } from 'react';
+import { useServerFn } from '@tanstack/react-start';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import { useResident } from '@/components/resident-session';
 import { STAFF_TITLES, STAFF_TITLE_LABELS } from '@/components/school-panel';
+import { registerStudent } from '@/lib/students.functions';
 import bgAsset from '@/assets/stop-violence-choose-peace.png.asset.json';
 
 export const Route = createFileRoute('/auth')({
@@ -28,9 +30,41 @@ function AuthPage() {
   const [message, setMessage] = useState('');
   const [role, setRole] = useState<'student' | 'staff'>('student');
   const [title, setTitle] = useState<string>('DOS');
+  const [provinces, setProvinces] = useState<Loc[]>([]);
+  const [districts, setDistricts] = useState<Loc[]>([]);
+  const [sectors, setSectors] = useState<Loc[]>([]);
+  const [sectorSchools, setSectorSchools] = useState<Loc[]>([]);
+  const [schoolsLoaded, setSchoolsLoaded] = useState(false);
+  const [province, setProvince] = useState('');
+  const [district, setDistrict] = useState('');
+  const [sector, setSector] = useState('');
+  const [school, setSchool] = useState('');
+  const [studentCode, setStudentCode] = useState('');
   const { user } = useResident();
   const navigate = useNavigate();
+  const registerStudentFn = useServerFn(registerStudent);
   useEffect(() => { if (user) void navigate({ to: '/', replace: true }); }, [user, navigate]);
+  // Cascading location loads for student sign-up; each level resets the ones below.
+  useEffect(() => {
+    if (mode !== 'signup' || role !== 'student' || provinces.length) return;
+    void supabase.from('provinces').select('id,name').order('name').then(({ data }) => setProvinces(data ?? []));
+  }, [mode, role, provinces.length]);
+  useEffect(() => {
+    setDistricts([]); setDistrict(''); setSectors([]); setSector(''); setSectorSchools([]); setSchool(''); setSchoolsLoaded(false);
+    if (!province) return;
+    void supabase.from('districts').select('id,name').eq('province_id', province).order('name').then(({ data }) => setDistricts(data ?? []));
+  }, [province]);
+  useEffect(() => {
+    setSectors([]); setSector(''); setSectorSchools([]); setSchool(''); setSchoolsLoaded(false);
+    if (!district) return;
+    void supabase.from('sectors').select('id,name').eq('district_id', district).order('name').then(({ data }) => setSectors(data ?? []));
+  }, [district]);
+  useEffect(() => {
+    setSectorSchools([]); setSchool(''); setSchoolsLoaded(false);
+    if (!sector) return;
+    void supabase.from('schools').select('id,name').eq('sector_id', sector).eq('active', true).order('name')
+      .then(({ data }) => { setSectorSchools(data ?? []); setSchoolsLoaded(true); });
+  }, [sector]);
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setMessage('');
     try {
