@@ -72,6 +72,13 @@ function AuthPage() {
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` });
         if (error) throw error;
         setMessage('If an account exists, check your email for a reset link.');
+      } else if (mode === 'signup' && role === 'student') {
+        if (!province || !district || !sector || !school) { setMessage('Choose your province, district, sector and school.'); return; }
+        if (!studentCode.trim()) { setMessage('Enter your student code.'); return; }
+        await registerStudentFn({ data: { email: email.trim(), password, fullName: name.trim(), studentCode: studentCode.trim(), schoolId: school, sectorId: sector } });
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) setMessage('Account created — please sign in.');
+        else await navigate({ to: '/', replace: true });
       } else if (mode === 'signup') {
         const { error, data } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { display_name: name.trim(), school_role: role, staff_title: role === 'staff' ? title : '' }, emailRedirectTo: window.location.origin } });
         if (error) {
@@ -101,6 +108,7 @@ function AuthPage() {
     } catch { setMessage('Sign-in could not start. Please try again.'); }
   }
   const field = 'w-full rounded-md border border-input bg-card px-3 py-2 text-sm';
+  const studentSignup = mode === 'signup' && role === 'student';
   return <main className="relative min-h-screen px-4 py-10">
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-cover bg-center" style={{ backgroundImage: `url(${bgAsset.url})` }} />
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-background/85" />
