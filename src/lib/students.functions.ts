@@ -82,10 +82,8 @@ export const registerStudent = createServerFn({ method: 'POST' })
     return { ok: true };
   });
 
-type OwnerContext = { supabase: { rpc: (fn: 'is_site_owner') => Promise<{ data: unknown }> } };
-
-async function requireOwner(context: OwnerContext) {
-  const { data } = await context.supabase.rpc('is_site_owner');
+async function requireOwner(supabase: SupabaseClient<Database>) {
+  const { data } = await supabase.rpc('is_site_owner');
   if (!data) throw new Error('Admins only');
 }
 
