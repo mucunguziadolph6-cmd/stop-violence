@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState, type FormEvent } from 'react';
+import { useServerFn } from '@tanstack/react-start';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import { useResident } from '@/components/resident-session';
 import { STAFF_TITLES, STAFF_TITLE_LABELS } from '@/components/school-panel';
+import { registerStudent } from '@/lib/students.functions';
 import bgAsset from '@/assets/stop-violence-choose-peace.png.asset.json';
 
 export const Route = createFileRoute('/auth')({
@@ -19,6 +21,8 @@ export const Route = createFileRoute('/auth')({
   ] }), component: AuthPage,
 });
 
+type Loc = { id: string; name: string };
+
 function AuthPage() {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [name, setName] = useState('');
@@ -28,9 +32,41 @@ function AuthPage() {
   const [message, setMessage] = useState('');
   const [role, setRole] = useState<'student' | 'staff'>('student');
   const [title, setTitle] = useState<string>('DOS');
+  const [provinces, setProvinces] = useState<Loc[]>([]);
+  const [districts, setDistricts] = useState<Loc[]>([]);
+  const [sectors, setSectors] = useState<Loc[]>([]);
+  const [sectorSchools, setSectorSchools] = useState<Loc[]>([]);
+  const [schoolsLoaded, setSchoolsLoaded] = useState(false);
+  const [province, setProvince] = useState('');
+  const [district, setDistrict] = useState('');
+  const [sector, setSector] = useState('');
+  const [school, setSchool] = useState('');
+  const [studentCode, setStudentCode] = useState('');
   const { user } = useResident();
   const navigate = useNavigate();
+  const registerStudentFn = useServerFn(registerStudent);
   useEffect(() => { if (user) void navigate({ to: '/', replace: true }); }, [user, navigate]);
+  // Cascading location loads for student sign-up; each level resets the ones below.
+  useEffect(() => {
+    if (mode !== 'signup' || role !== 'student' || provinces.length) return;
+    void supabase.from('provinces').select('id,name').order('name').then(({ data }) => setProvinces(data ?? []));
+  }, [mode, role, provinces.length]);
+  useEffect(() => {
+    setDistricts([]); setDistrict(''); setSectors([]); setSector(''); setSectorSchools([]); setSchool(''); setSchoolsLoaded(false);
+    if (!province) return;
+    void supabase.from('districts').select('id,name').eq('province_id', province).order('name').then(({ data }) => setDistricts(data ?? []));
+  }, [province]);
+  useEffect(() => {
+    setSectors([]); setSector(''); setSectorSchools([]); setSchool(''); setSchoolsLoaded(false);
+    if (!district) return;
+    void supabase.from('sectors').select('id,name').eq('district_id', district).order('name').then(({ data }) => setSectors(data ?? []));
+  }, [district]);
+  useEffect(() => {
+    setSectorSchools([]); setSchool(''); setSchoolsLoaded(false);
+    if (!sector) return;
+    void supabase.from('schools').select('id,name').eq('sector_id', sector).eq('active', true).order('name')
+      .then(({ data }) => { setSectorSchools(data ?? []); setSchoolsLoaded(true); });
+  }, [sector]);
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setMessage('');
     try {
@@ -38,6 +74,13 @@ function AuthPage() {
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` });
         if (error) throw error;
         setMessage('If an account exists, check your email for a reset link.');
+      } else if (mode === 'signup' && role === 'student') {
+        if (!province || !district || !sector || !school) { setMessage('Choose your province, district, sector and school.'); return; }
+        if (!studentCode.trim()) { setMessage('Enter your student code.'); return; }
+        await registerStudentFn({ data: { email: email.trim(), password, fullName: name.trim(), studentCode: studentCode.trim(), schoolId: school, sectorId: sector } });
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) setMessage('Account created — please sign in.');
+        else await navigate({ to: '/', replace: true });
       } else if (mode === 'signup') {
         const { error, data } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { display_name: name.trim(), school_role: role, staff_title: role === 'staff' ? title : '' }, emailRedirectTo: window.location.origin } });
         if (error) {
@@ -67,6 +110,7 @@ function AuthPage() {
     } catch { setMessage('Sign-in could not start. Please try again.'); }
   }
   const field = 'w-full rounded-md border border-input bg-card px-3 py-2 text-sm';
+  const studentSignup = mode === 'signup' && role === 'student';
   return <main className="relative min-h-screen px-4 py-10">
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-cover bg-center" style={{ backgroundImage: `url(${bgAsset.url})` }} />
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-background/85" />
@@ -74,10 +118,19 @@ function AuthPage() {
       <Button variant="link" asChild><Link to="/">← Community reports</Link></Button>
       <h1 className="mt-5 text-3xl font-bold">{mode === 'signup' ? 'Create your account' : mode === 'forgot' ? 'Reset your password' : 'Resident sign-in'}</h1>
       <form className="mt-6 space-y-4 rounded-lg border bg-card p-6 shadow-sm" onSubmit={submit}>
-        {mode === 'signup' && <div><label htmlFor="resident-name" className="mb-1 block text-sm font-medium">Your name</label><input id="resident-name" autoComplete="name" required maxLength={100} className={field} value={name} onChange={e => setName(e.target.value)} /></div>}
         {mode === 'signup' && <div><p className="mb-1 text-sm font-medium">I am a…</p><div className="flex gap-2"><Button type="button" variant={role === 'student' ? 'default' : 'outline'} onClick={() => setRole('student')}>Student</Button><Button type="button" variant={role === 'staff' ? 'default' : 'outline'} onClick={() => setRole('staff')}>School Administrator</Button></div>
           {role === 'staff' && <select aria-label="Staff position" className={`${field} mt-2`} value={title} onChange={e => setTitle(e.target.value)}>{STAFF_TITLES.map(t => <option key={t} value={t}>{STAFF_TITLE_LABELS[t]}</option>)}</select>}
-          <p className="mt-1 text-xs text-muted-foreground">You'll choose your school after signing in. Staff need approval first.</p></div>}
+          {role === 'staff' && <p className="mt-1 text-xs text-muted-foreground">You'll choose your school after signing in. Staff need approval first.</p>}</div>}
+        {studentSignup && <div className="space-y-3">
+          <div><label htmlFor="province" className="mb-1 block text-sm font-medium">Province</label><select id="province" required className={field} value={province} onChange={e => setProvince(e.target.value)}><option value="">Choose province…</option>{provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+          <div><label htmlFor="district" className="mb-1 block text-sm font-medium">District</label><select id="district" required className={field} value={district} onChange={e => setDistrict(e.target.value)} disabled={!province}><option value="">Choose district…</option>{districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></div>
+          <div><label htmlFor="sector" className="mb-1 block text-sm font-medium">Sector</label><select id="sector" required className={field} value={sector} onChange={e => setSector(e.target.value)} disabled={!district}><option value="">Choose sector…</option>{sectors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+          <div><label htmlFor="school" className="mb-1 block text-sm font-medium">School</label><select id="school" required className={field} value={school} onChange={e => setSchool(e.target.value)} disabled={!sector}><option value="">{!sector ? 'Choose a sector first…' : sectorSchools.length ? 'Choose your school…' : 'No school found'}</option>{sectorSchools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
+            {sector && schoolsLoaded && !sectorSchools.length && <p className="mt-1 text-xs text-muted-foreground">No school found in this sector. Contact your administrator.</p>}</div>
+        </div>}
+        {mode === 'signup' && <div><label htmlFor="resident-name" className="mb-1 block text-sm font-medium">{studentSignup ? 'Full name (as registered at school)' : 'Your name'}</label><input id="resident-name" autoComplete="name" required maxLength={100} className={field} value={name} onChange={e => setName(e.target.value)} /></div>}
+        {studentSignup && <div><label htmlFor="student-code" className="mb-1 block text-sm font-medium">Student code</label><input id="student-code" required maxLength={50} className={field} placeholder="e.g. 200285" value={studentCode} onChange={e => setStudentCode(e.target.value)} />
+          <p className="mt-1 text-xs text-muted-foreground">Your school gives you this code. It can be used only once.</p></div>}
         <div><label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label><input id="email" type="email" required autoComplete="email" className={field} value={email} onChange={e => setEmail(e.target.value)} /></div>
         {mode !== 'forgot' && <div><label htmlFor="password" className="mb-1 block text-sm font-medium">Password</label><input id="password" type="password" required minLength={8} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} className={field} value={password} onChange={e => setPassword(e.target.value)} /></div>}
         {message && <p role="status" className="break-words text-sm">{message}</p>}

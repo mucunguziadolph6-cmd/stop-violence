@@ -1,5 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import { normalizeName } from './student-verification';
 
@@ -80,10 +82,8 @@ export const registerStudent = createServerFn({ method: 'POST' })
     return { ok: true };
   });
 
-type OwnerContext = { supabase: { rpc: (fn: string) => Promise<{ data: unknown }> } };
-
-async function requireOwner(context: OwnerContext) {
-  const { data } = await context.supabase.rpc('is_site_owner');
+async function requireOwner(supabase: SupabaseClient<Database>) {
+  const { data } = await supabase.rpc('is_site_owner');
   if (!data) throw new Error('Admins only');
 }
 
@@ -97,7 +97,7 @@ export const adminAddSchool = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) =>
     z.object({ name: z.string().trim().min(2).max(200), sectorId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
-    await requireOwner(context);
+    await requireOwner(context.supabase);
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     const { data: sector } = await supabaseAdmin.from('sectors').select('id').eq('id', data.sectorId).maybeSingle();
     if (!sector) throw new Error('Choose a valid sector');
@@ -118,7 +118,7 @@ export const adminImportSchools = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) =>
     z.object({ rows: z.array(schoolRowSchema).min(1).max(MAX_IMPORT_ROWS) }).parse(data))
   .handler(async ({ data, context }): Promise<ImportResult> => {
-    await requireOwner(context);
+    await requireOwner(context.supabase);
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     const [{ data: sectors }, { data: districts }, { data: provinces }] = await Promise.all([
       supabaseAdmin.from('sectors').select('id, name, district_id'),
@@ -157,7 +157,7 @@ export const adminAddStudentCode = createServerFn({ method: 'POST' })
       fullName: z.string().trim().min(2).max(100),
     }).parse(data))
   .handler(async ({ data, context }) => {
-    await requireOwner(context);
+    await requireOwner(context.supabase);
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     const { error } = await supabaseAdmin.from('student_codes').insert({
       school_id: data.schoolId,
@@ -182,7 +182,7 @@ export const adminImportStudentCodes = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) =>
     z.object({ rows: z.array(studentRowSchema).min(1).max(MAX_IMPORT_ROWS) }).parse(data))
   .handler(async ({ data, context }): Promise<ImportResult> => {
-    await requireOwner(context);
+    await requireOwner(context.supabase);
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     const schools: { id: string; name: string }[] = [];
     for (let from = 0; ; from += 1000) {
@@ -223,7 +223,7 @@ export const adminListStudentCodes = createServerFn({ method: 'GET' })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { schoolId?: string }) => ({ schoolId: data?.schoolId }))
   .handler(async ({ data, context }): Promise<StudentCodeRow[]> => {
-    await requireOwner(context);
+    await requireOwner(context.supabase);
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     let query = supabaseAdmin
       .from('student_codes')
@@ -257,7 +257,7 @@ export const adminImportLocations = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) =>
     z.object({ rows: z.array(locationRowSchema).min(1).max(MAX_IMPORT_ROWS) }).parse(data))
   .handler(async ({ data, context }) => {
-    await requireOwner(context);
+    await requireOwner(context.supabase);
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     let added = { provinces: 0, districts: 0, sectors: 0 };
     const errors: ImportRowError[] = [];
