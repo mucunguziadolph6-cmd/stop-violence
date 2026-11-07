@@ -255,7 +255,7 @@ function StudentsTab() {
         label="Import students from CSV"
         columns={['school_name', 'student_code', 'full_name']}
         dupeKeys={['school_name', 'student_code']}
-        validateRow={(r) => (!r.school_name || !r.student_code || !r.full_name ? 'All columns are required' : null)}
+        validateRow={(r) => (!r['school_name'] || !r['student_code'] || !r['full_name'] ? 'All columns are required' : null)}
         onImport={async (rows) => {
           const res = await adminImportStudentCodes({ data: { rows: rows.map((r) => ({ school_name: r['school_name'] ?? '', student_code: r['student_code'] ?? '', full_name: r['full_name'] ?? '' })) } });
           if (school) void loadCodes(school);
@@ -304,7 +304,7 @@ function SchoolsTab() {
         label="Import schools from CSV"
         columns={['school_name', 'province', 'district', 'sector']}
         dupeKeys={['school_name', 'sector', 'district']}
-        validateRow={(r) => (!r.school_name || !r.province || !r.district || !r.sector ? 'All columns are required' : null)}
+        validateRow={(r) => (!r['school_name'] || !r['province'] || !r['district'] || !r['sector'] ? 'All columns are required' : null)}
         onImport={(rows) => adminImportSchools({ data: { rows: rows.map((r) => ({ school_name: r['school_name'] ?? '', province: r['province'] ?? '', district: r['district'] ?? '', sector: r['sector'] ?? '' })) } })}
       />
     </div>
@@ -322,7 +322,7 @@ function LocationsTab() {
         label="Import locations from CSV"
         columns={['province', 'district', 'sector']}
         dupeKeys={['province', 'district', 'sector']}
-        validateRow={(r) => (!r.province || !r.district || !r.sector ? 'All columns are required' : null)}
+        validateRow={(r) => (!r['province'] || !r['district'] || !r['sector'] ? 'All columns are required' : null)}
         onImport={async (rows) => {
           const res = await adminImportLocations({ data: { rows: rows.map((r) => ({ province: r['province'] ?? '', district: r['district'] ?? '', sector: r['sector'] ?? '' })) } });
           return { imported: res.sectors, errors: res.errors };
