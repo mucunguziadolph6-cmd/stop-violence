@@ -21,6 +21,8 @@ export const Route = createFileRoute('/auth')({
   ] }), component: AuthPage,
 });
 
+type Loc = { id: string; name: string };
+
 function AuthPage() {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [name, setName] = useState('');
@@ -116,10 +118,19 @@ function AuthPage() {
       <Button variant="link" asChild><Link to="/">← Community reports</Link></Button>
       <h1 className="mt-5 text-3xl font-bold">{mode === 'signup' ? 'Create your account' : mode === 'forgot' ? 'Reset your password' : 'Resident sign-in'}</h1>
       <form className="mt-6 space-y-4 rounded-lg border bg-card p-6 shadow-sm" onSubmit={submit}>
-        {mode === 'signup' && <div><label htmlFor="resident-name" className="mb-1 block text-sm font-medium">Your name</label><input id="resident-name" autoComplete="name" required maxLength={100} className={field} value={name} onChange={e => setName(e.target.value)} /></div>}
         {mode === 'signup' && <div><p className="mb-1 text-sm font-medium">I am a…</p><div className="flex gap-2"><Button type="button" variant={role === 'student' ? 'default' : 'outline'} onClick={() => setRole('student')}>Student</Button><Button type="button" variant={role === 'staff' ? 'default' : 'outline'} onClick={() => setRole('staff')}>School Administrator</Button></div>
           {role === 'staff' && <select aria-label="Staff position" className={`${field} mt-2`} value={title} onChange={e => setTitle(e.target.value)}>{STAFF_TITLES.map(t => <option key={t} value={t}>{STAFF_TITLE_LABELS[t]}</option>)}</select>}
-          <p className="mt-1 text-xs text-muted-foreground">You'll choose your school after signing in. Staff need approval first.</p></div>}
+          {role === 'staff' && <p className="mt-1 text-xs text-muted-foreground">You'll choose your school after signing in. Staff need approval first.</p>}</div>}
+        {studentSignup && <div className="space-y-3">
+          <div><label htmlFor="province" className="mb-1 block text-sm font-medium">Province</label><select id="province" required className={field} value={province} onChange={e => setProvince(e.target.value)}><option value="">Choose province…</option>{provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+          <div><label htmlFor="district" className="mb-1 block text-sm font-medium">District</label><select id="district" required className={field} value={district} onChange={e => setDistrict(e.target.value)} disabled={!province}><option value="">Choose district…</option>{districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></div>
+          <div><label htmlFor="sector" className="mb-1 block text-sm font-medium">Sector</label><select id="sector" required className={field} value={sector} onChange={e => setSector(e.target.value)} disabled={!district}><option value="">Choose sector…</option>{sectors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+          <div><label htmlFor="school" className="mb-1 block text-sm font-medium">School</label><select id="school" required className={field} value={school} onChange={e => setSchool(e.target.value)} disabled={!sector}><option value="">{!sector ? 'Choose a sector first…' : sectorSchools.length ? 'Choose your school…' : 'No school found'}</option>{sectorSchools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
+            {sector && schoolsLoaded && !sectorSchools.length && <p className="mt-1 text-xs text-muted-foreground">No school found in this sector. Contact your administrator.</p>}</div>
+        </div>}
+        {mode === 'signup' && <div><label htmlFor="resident-name" className="mb-1 block text-sm font-medium">{studentSignup ? 'Full name (as registered at school)' : 'Your name'}</label><input id="resident-name" autoComplete="name" required maxLength={100} className={field} value={name} onChange={e => setName(e.target.value)} /></div>}
+        {studentSignup && <div><label htmlFor="student-code" className="mb-1 block text-sm font-medium">Student code</label><input id="student-code" required maxLength={50} className={field} placeholder="e.g. 200285" value={studentCode} onChange={e => setStudentCode(e.target.value)} />
+          <p className="mt-1 text-xs text-muted-foreground">Your school gives you this code. It can be used only once.</p></div>}
         <div><label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label><input id="email" type="email" required autoComplete="email" className={field} value={email} onChange={e => setEmail(e.target.value)} /></div>
         {mode !== 'forgot' && <div><label htmlFor="password" className="mb-1 block text-sm font-medium">Password</label><input id="password" type="password" required minLength={8} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} className={field} value={password} onChange={e => setPassword(e.target.value)} /></div>}
         {message && <p role="status" className="break-words text-sm">{message}</p>}

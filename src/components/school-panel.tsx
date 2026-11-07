@@ -176,6 +176,7 @@ function OwnerTools({ onChange }: { onChange: () => void }) {
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <h2 className="font-semibold">Site owner tools</h2>
+      <Button variant="outline" size="sm" asChild><Link to="/admin">Open admin page (schools, students, locations)</Link></Button>
       <div className="flex gap-2"><input aria-label="New school name" className={field} placeholder="School name" value={name} onChange={(e) => setName(e.target.value)} /><Button type="button" onClick={addSchool} disabled={name.trim().length < 2}>Add school</Button></div>
       <p className="text-sm font-medium">Staff waiting for approval ({pending.length})</p>
       <ul className="space-y-2">{pending.map((p) => (
