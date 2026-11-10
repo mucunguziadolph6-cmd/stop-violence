@@ -85,9 +85,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Report a problem with a description, location and photo — privately and securely." },
       { name: "author", content: "Stop Violence" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/stopviolencelogo.png" },
+      { property: "og:image", content: "https://stopviolence.lovable.app/favicon.png" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "/stopviolencelogo.png" },
+      { name: "twitter:image", content: "https://stopviolence.lovable.app/favicon.png" },
     ],
     links: [
       {
@@ -107,7 +107,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@type": "WebSite",
           name: "Stop Violence",
           url: "https://stopviolence.lovable.app/",
-          image: "https://stopviolence.lovable.app/stopviolencelogo.png",
+          image: "https://stopviolence.lovable.app/favicon.png",
         }),
       },
     ],
@@ -138,11 +138,6 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ResidentSession>
-        <header className="mx-auto flex max-w-xl justify-center px-4 pt-4">
-          <Link to="/" aria-label="Stop Violence home">
-            <img src="/stopviolencelogo.png" alt="Stop Violence — Choose Peace" className="h-auto max-h-20 w-auto max-w-full object-contain" />
-          </Link>
-        </header>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster richColors />
