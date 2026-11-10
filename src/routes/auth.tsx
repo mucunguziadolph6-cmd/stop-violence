@@ -80,9 +80,8 @@ function AuthPage() {
     });
   }, [district]);
 
-  // Existing school rows may have a text sector, or may have no sector and a
-  // district parsed from the school name. Match the selected location labels
-  // case-insensitively; inputs are trimmed and the migration trims backfilled districts.
+  // Legacy schools have no schools.sector column. Their district is stored in
+  // schools.district, backfilled from the suffix of name by migration 20261110000001.
   useEffect(() => {
     setSectorSchools([]);
     setSchool('');
@@ -90,54 +89,48 @@ function AuthPage() {
     setSchoolsError('');
 
     const districtName = districts.find((item) => item.id === district)?.name.trim() ?? '';
-    const sectorName = sectors.find((item) => item.id === sector)?.name.trim() ?? '';
-    if (!districtName || !sectorName) {
+    if (!districtName || !sector) {
       setSchoolsLoading(false);
       return;
     }
 
     let cancelled = false;
     setSchoolsLoading(true);
-    console.log('[auth] School lookup values:', { sector: sectorName, district: districtName, sectorId: sector, districtId: district });
+    console.log('[auth] School lookup value:', { district: districtName, districtId: district, sectorId: sector });
 
-    void Promise.all([
-      // Where school sector is populated, filter by the selected sector name
-      // and district. ilike without wildcards is case-insensitive exact matching.
-      supabase.from('schools').select('id,name').ilike('sector', sectorName).ilike('district', districtName).eq('active', true).order('name', { ascending: true }),
-      // Legacy rows with no sector are grouped by their backfilled district.
-      supabase.from('schools').select('id,name').filter('sector', 'is', 'null').ilike('district', districtName).eq('active', true).order('name', { ascending: true }),
-    ]).then(([sectorResponse, districtResponse]) => {
-      console.log('[auth] Full schools Supabase responses:', { sectorResponse, districtResponse });
-      if (cancelled) return;
-
-      const queryError = sectorResponse.error ?? districtResponse.error;
-      if (queryError) {
-        setSectorSchools([]);
-        setSchoolsError(queryError.message);
-      } else {
-        const uniqueSchools = new Map<string, School>();
-        for (const row of [...(sectorResponse.data ?? []), ...(districtResponse.data ?? [])]) {
-          // Names contain "School — District"; keep the district in storage,
-          // but present only the school name to the student.
-          const displayName = row.name.split('—', 1)[0]?.trim() ?? row.name.trim();
-          uniqueSchools.set(row.id, { id: row.id, name: displayName });
+    void supabase
+      .from('schools')
+      .select('id,name')
+      .ilike('district', districtName)
+      .eq('active', true)
+      .order('name', { ascending: true })
+      .then(({ data, error }) => {
+        console.log('[auth] Full schools Supabase response:', { data, error });
+        if (cancelled) return;
+        if (error) {
+          setSectorSchools([]);
+          setSchoolsError(error.message);
+        } else {
+          const sortedSchools = (data ?? [])
+            .map(({ id, name: schoolName }) => ({ id, name: schoolName.split('—', 1)[0]?.trim() ?? schoolName.trim() }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+          setSectorSchools(sortedSchools);
+          setSchoolsError('');
         }
-        setSectorSchools([...uniqueSchools.values()].sort((a, b) => a.name.localeCompare(b.name)));
-        setSchoolsError('');
-      }
-      setSchoolsLoaded(true);
-      setSchoolsLoading(false);
-    }).catch((error: unknown) => {
-      console.error('[auth] Unexpected schools query failure:', error);
-      if (cancelled) return;
-      setSectorSchools([]);
-      setSchoolsError(error instanceof Error ? error.message : String(error));
-      setSchoolsLoaded(true);
-      setSchoolsLoading(false);
-    });
+        setSchoolsLoaded(true);
+        setSchoolsLoading(false);
+      })
+      .catch((error: unknown) => {
+        console.error('[auth] Unexpected schools query failure:', error);
+        if (cancelled) return;
+        setSectorSchools([]);
+        setSchoolsError(error instanceof Error ? error.message : String(error));
+        setSchoolsLoaded(true);
+        setSchoolsLoading(false);
+      });
 
     return () => { cancelled = true; };
-  }, [sector, district, districts, sectors]);
+  }, [sector, district, districts]);
 
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setMessage('');
