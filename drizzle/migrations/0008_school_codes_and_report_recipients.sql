@@ -99,21 +99,33 @@ $$;
 REVOKE ALL ON FUNCTION public.regenerate_school_code(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.regenerate_school_code(uuid) TO authenticated, service_role;
 
+-- Trigger generation must not depend on auth.uid(): schools are commonly created
+-- by the privileged server client, whose database request has no end-user JWT.
 CREATE FUNCTION public.create_school_code()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE generated text;
 BEGIN
-  PERFORM public.regenerate_school_code(NEW.id);
+  LOOP
+    generated := upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 8));
+    EXIT WHEN NOT EXISTS (SELECT 1 FROM public.school_codes WHERE code = generated);
+  END LOOP;
+  INSERT INTO public.school_codes(school_id, code) VALUES (NEW.id, generated);
   RETURN NEW;
 END;
 $$;
 CREATE TRIGGER schools_create_reusable_code AFTER INSERT ON public.schools
   FOR EACH ROW EXECUTE FUNCTION public.create_school_code();
 
+-- Backfill schools without changing any existing school or report data.
 DO $$
-DECLARE school_row record;
+DECLARE school_row record; generated text;
 BEGIN
   FOR school_row IN SELECT s.id FROM public.schools s LEFT JOIN public.school_codes c ON c.school_id = s.id WHERE c.school_id IS NULL LOOP
-    PERFORM public.regenerate_school_code(school_row.id);
+    LOOP
+      generated := upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 8));
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM public.school_codes WHERE code = generated);
+    END LOOP;
+    INSERT INTO public.school_codes(school_id, code) VALUES (school_row.id, generated);
   END LOOP;
 END;
 $$;
@@ -202,4 +214,15 @@ BEGIN
 END;
 $$;
 
--- Ensure new school records receive codes when inserted by a privileged server as well.
+-- The feed is a public/community feed, not a bypass around private school report RLS.
+CREATE OR REPLACE FUNCTION public.list_reports_since_signup(page_number integer DEFAULT 0)
+RETURNS TABLE(id uuid, description text, location text, category text, summary text, created_at timestamptz)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT r.id, r.description, r.location, r.category, r.summary, r.created_at
+  FROM public.reports r
+  WHERE auth.uid() IS NOT NULL
+    AND r.school_id IS NULL
+    AND r.created_at >= (SELECT u.created_at FROM auth.users u WHERE u.id = auth.uid())
+  ORDER BY r.created_at DESC, r.id
+  LIMIT 30 OFFSET (greatest(0, least(page_number, 10000)) * 30)
+$$;
